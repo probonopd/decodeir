@@ -1,7 +1,9 @@
 decodeir
 ========
 
-DecodeIR is based on  DecodeIR v2.44 sources from http://www.hifi-remote.com/forums/viewtopic.php?t=14219 with all Java and Windows code removed and converted from a library to a standalone executable
+decodeir is an executable that converts Pronto Hex infrared codes into protocol, device, subdevice, command = OBC information. 
+
+is based on  DecodeIR v2.44 sources from http://www.hifi-remote.com/forums/viewtopic.php?t=14219 with all Java and Windows code removed and converted from a library to a standalone executable
 
 Usage:
 ```
