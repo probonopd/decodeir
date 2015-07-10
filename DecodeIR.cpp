@@ -7,15 +7,14 @@
 
 #include "DecodeIR.h"
 
-#include <assert.h>
-#define __cdecl
+#include<assert.h>
 #define _ASSERT assert
 #define DWORD int
 #define LPVOID void *
 #define strnicmp strncasecmp
 
 
-static char const version_cstr[]="2.44";	// Version 2.44 by DAR Aug 2012
+static char const version_cstr[]="2.45";	
 
 Signal::Signal(
 		unsigned int* p_Context,
@@ -970,6 +969,7 @@ void Signal::tryPid13()
 
 	strcpy(pProtocol,"pid-0013");
 	*pOBC = getLsb(1,6);
+	*pHex = ((msb(cBits[0]) >> 1) & 0x3F) | 0x80;
 }
 
 // Lutron uses a 40kHz carrier to send an asynchronous signal with 8 start bits,
@@ -2530,9 +2530,9 @@ no2:            *pDevice = cBits[0];
 			//  C = D ^ S:4:0 ^ S:4:4 ^ F:4:0 ^ F:4:4 ^ E
 			//  T = D + S:4:0 + S:4:4 + F:4:0 + F:4:4
 			//
-			// Fujitsu  {38k,400}<1,-1|1,-3>(8,-4,20:8,99:8,X:4,E:4,D:8,S:8,F:8,1,-110)+
-			// Kaseikyo {37k,432}<1,-1,1,-3>(8,-4,M:8,N:8,X:4,D:4,S:8,F:8,E:4,C:4,1,-173)+
-			// SharpDVD {38k,400}<1,-1|1,-3>(8,-4,170:8,90:8,D:8,S:8,F:8,E:4,C:4,1,-48)+
+			// Fujitsu  {38k,400}<1,-1|1,-3>(8,-4,20:8,99:8, X:4,E:4,D:8,S:8,F:8,1,-110)+
+			// Kaseikyo {37k,432}<1,-1,1,-3>(8,-4,M:8,N:8,   X:4,D:4,S:8,G:8,F:8,1,-173)+
+			// SharpDVD {38k,400}<1,-1|1,-3>(8,-4,170:8,90:8,X:4,D:4,S:8,F:8,E:4,C:4,1,-48)+
 			// 00F8
 			//
 			// Panasonic {37k,432}<1,-1,1,-3>(8,-4, 2:8,32:8,D:8,S:8,F:8,(D^S^F):8,1,-173)+
@@ -2578,7 +2578,8 @@ no2:            *pDevice = cBits[0];
 							*pDevice = cBits[2]>>4;
 							*pSubDevice = cBits[3]&15;
 							*pOBC = getLsb(28,12);
-							*pHex = msb(255-cBits[4]);
+							pHex[0] = msb(255-cBits[3]); 
+							pHex[1] = msb(255-cBits[4]);
 							return;
 						}
 					}
@@ -2590,7 +2591,8 @@ no2:            *pDevice = cBits[0];
 						if ( cBits[4] != cBits[3] )
 							*pSubDevice = cBits[4];
 						*pOBC = cBits[5];
-						*pHex = msb(255-cBits[5]);
+						pHex[0] = msb(255-cBits[4]); 
+						pHex[1] = msb(255-cBits[5]);
 						if (x2)
 							sprintf(pMisc,"E=%d",x2);
 						return;
@@ -2601,6 +2603,8 @@ no2:            *pDevice = cBits[0];
 						*pDevice = x2;
 						*pSubDevice = cBits[3];
 						*pOBC = cBits[4];
+						pHex[0] = msb(255-cBits[4]); 
+						pHex[1] = msb(255-cBits[5]);
 						int x5 = cBits[5]&0xF;
 						sprintf(pMisc,"E=%d",x5);
 						return;
@@ -2647,6 +2651,7 @@ no2:            *pDevice = cBits[0];
 							return;
 						}
 					}
+					/*  removed Jan 2015 DAR
 					if ( ( ( (xor2>>4) ^ xor2 ^ x2 ) & 15 ) == 0 )
 					{
 						sprintf(pProtocol, "Kaseikyo-%d.%d", cBits[0], cBits[1] );
@@ -2657,19 +2662,18 @@ no2:            *pDevice = cBits[0];
 						sprintf(pMisc,"E=%d", cBits[5]&15 );
 						return;
 					}
+					*/
 
-			// ??Kaseikyo {37k,432}<1,-1,1,-3>(8,-4,M:8,N:8,X:4,D:4,S:8,G:8,F:8,1,-173)+
-			// Catch-all Kaseikyo variant, checksum unknown
-					if ( true )        // GD 2009
-					{
-						sprintf(pProtocol, "??Kaseikyo-%d.%d", cBits[0], cBits[1] );
-						*pDevice = cBits[2]>>4;
-						*pSubDevice = cBits[3];
-						*pOBC = cBits[5];
-						*pHex = cBits[5];
-						sprintf(pMisc,"G=%d", cBits[4] );
-						return;
-					}
+			// Kaseikyo {37k,432}<1,-1,1,-3>(8,-4,M:8,N:8,X:4,D:4,S:8,F:8,G:8,1,-173)+
+			// General Kaseikyo, checksum or OEM unknown    Promoted to main Kaseikyo decode Jan 2015 DAR
+					sprintf(pProtocol, "Kaseikyo");
+					*pDevice = cBits[2]>>4;
+					*pSubDevice = cBits[3];
+					*pOBC = cBits[4];
+					pHex[0] = msb(255-cBits[4]);
+					pHex[1] = msb(255-cBits[5]);
+					sprintf(pMisc,"M=%d N=%d G=%d", cBits[0], cBits[1], cBits[5] );
+					return;
 				}
 			}
 		}
@@ -2720,16 +2724,14 @@ no2:            *pDevice = cBits[0];
 							sprintf(pMisc+strlen(pMisc)," E=%d",x2);
 						return;
 					}
-					if ( ( ( (xor2>>4) ^ xor2 ^ x2 ) & 15 ) == 0 )
-					{
-						sprintf(pProtocol, "Kaseikyo56-%d.%d", cBits[0], cBits[1] );
-						*pDevice = cBits[2]>>4;
-						*pSubDevice = cBits[3];
-						*pOBC = cBits[5];
-						*pHex = msb(255-cBits[5]);
-						sprintf(pMisc,"X=%d E=%d", cBits[4], cBits[6]&15 );
-						return;
-					}
+					//Kaseikyo56 {37k,432}<1,-1,1,-3>(8,-4,M:8,N:8,X:4,D:4,S:8,E:8,F:8,G:8,1,-173)+ Revised DAR Jan 2015
+					sprintf(pProtocol, "Kaseikyo56");
+					*pDevice = cBits[2]>>4;
+					*pSubDevice = cBits[3];
+					*pOBC = cBits[5];
+					//*pHex = msb(255-cBits[5]);
+					sprintf(pMisc,"M=%d N=%d E=%d G=%d", cBits[0], cBits[1], cBits[4], cBits[6] );
+					return;
 				}
 			}
 		}
@@ -5138,8 +5140,8 @@ void Signal::tryXX()	// {500}<-1,1|1,-1>((1,-5, 1:1,
 			if (command>=0 && command != 511)
 			{
 				int cmds = 0;
-				obc = getLsb(0,7);
-				device = getLsb(7,2);
+				obc = getLsb(0,6);
+				device = getLsb(6,3);
 				int nextCommand;
 				do
 				{
@@ -5952,15 +5954,15 @@ void DecodeIR_API DecodeIR
 }
 
 int main(int argc, char* argv[]) 
-{ 
+{
   unsigned int i = 1; 
   int type; 
   sscanf(argv[i++], "%x", &type); 
   if (type != 0) 
-  { 
+{
     std::cerr << "Can only handle type 0000\n"; 
     exit(1); 
-  } 
+    }
   int fcode; 
   sscanf(argv[i++], "%x", &fcode); 
   int frequency = (int) (1000000.0/((double)fcode * 0.241246)); 
@@ -5970,11 +5972,11 @@ int main(int argc, char* argv[])
 
   int *data = new int[2*(intro_length+rep_length)]; 
   for (int j = 0; j < 2*(intro_length+rep_length); j++) 
-  { 
+    {
     int ncycles; 
     sscanf(argv[i++], "%x", &ncycles); 
     data[j] = (int)(1000000.0/frequency*ncycles); 
-  } 
+    }
   unsigned int decodeir_context[2] = { 0, 0}; 
   char protocol[255] = ""; 
   int device = -1; 
@@ -5983,13 +5985,13 @@ int main(int argc, char* argv[])
   int hex[4] = { -1, -1, -1, -1}; 
   char misc_message[255] = ""; 
   char error_message[255] = ""; 
-
+    
   do 
-  { 
+    {
     DecodeIR(decodeir_context, data, frequency, intro_length, rep_length, 
            protocol, &device, &subdevice, &obc, hex, misc_message, 
            error_message); 
-     
+
     if (protocol[0] != '\0') 
       std::cout 
       << "protocol=" << protocol 
@@ -6002,7 +6004,7 @@ int main(int argc, char* argv[])
       << " hex3=" << hex[3] 
       << " misc=" << misc_message 
       << " error=" << error_message << "\n"; 
-  } 
+    }
   while (protocol[0] != '\0'); 
-} 
+}
 
