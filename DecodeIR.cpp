@@ -8,7 +8,6 @@
 #include "DecodeIR.h"
 
 #include<assert.h>
-#define __cdecl
 #define _ASSERT assert
 #define DWORD int
 #define LPVOID void *

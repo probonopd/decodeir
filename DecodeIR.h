@@ -1,6 +1,5 @@
 
 #define DecodeIR_API
-#define _stdcall
 
 #define require(x) if (!(x)) { return; }
 
