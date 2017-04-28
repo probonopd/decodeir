@@ -3131,13 +3131,14 @@ bool Signal::processManchesterAtoms(int burstStart, int numBits, float used, flo
 	int burstIdx = burstStart;
 	int burstMax = pFrameEnd - pFr;
 	int bitIdx = 0;
+	int (*_abs)( int ) = & std::abs;
 	do {	
 		for (i=0; i<1; i++) { 
 			edge = first[i]; 
-			if (abs(pFr[burstIdx]- used - edge) < delta) { 
+			if (_abs(pFr[burstIdx]- used - edge) < delta) { 
 				cBits[bitIdx >> 3] |= (burstIdx&1) << (7 - bitIdx&7);
 				burstIdx++;
-				if (abs(pFr[burstIdx] - (bitDur - edge)) < delta) {
+				if (_abs(pFr[burstIdx] - (bitDur - edge)) < delta) {
 					used = 0.0;
 					burstIdx++;
 				}
@@ -3877,12 +3878,12 @@ void Signal::tryNokia()
 	{
 		return;
 	}
-
+	int (*_abs)( int ) = & std::abs;
     if (   pFrame[0] <= sortOn.max2           // Require that the first On be largest
 		|| sortOn.max2 > ON*1.5               // Require that the largest On other than the first not be excessive
 		|| sortBurst.max1 > BASE+UNIT*4.5     // Require that the largest Burst not be excessive
 		|| pFrame[0]+pFrame[1] > BASE+UNIT*3. // Require first pair not too large
-		||abs(sortOff.min1/sortOn.min1 - 276./164.) > 0.2  ) //require about the correct ratio of durations DAR 2012
+		||_abs(sortOff.min1/sortOn.min1 - 276./164.) > 0.2  ) //require about the correct ratio of durations DAR 2012
 	{
 		return;
 	}
@@ -4030,14 +4031,15 @@ bool Signal::processHumaxAtoms(int bitStart, float* pFr, int maxBursts)
 	first[0] = 2*one; first[1] = 3*one; first[2] = one; first[3] = 2*one;
 	int burstIdx = 0;
 	int bitIdx=bitStart;
+	int (*_abs)( int ) = & std::abs;
 	do {	
 		atomIdx=2 * (1 - burstIdx&1); //odd burstIdx is "off" signal, which can only be the beginning of bits value 0 or 1
 		for (i=0; i<2; i++) { //<-2,2|-3,1|1,-3|2,-2>
 			edge = first[atomIdx + i ]; 
-			if (abs(pFr[burstIdx]- used - edge) < delta) {
+			if (_abs(pFr[burstIdx]- used - edge) < delta) {
 				cBits[bitIdx >> 2] |= (atomIdx + i) << (6- 2*(bitIdx&3));
 				burstIdx++;
-				if (abs(pFr[burstIdx] - (four - edge)) < delta) {
+				if (_abs(pFr[burstIdx] - (four - edge)) < delta) {
 					used = 0.0;
 					burstIdx++;
 				}
