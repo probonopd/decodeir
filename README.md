@@ -14,4 +14,3 @@ protocol=NEC1 device=0 subdevice=191 obc=1 hex0=127 hex1=-1 hex2=-1 hex3=-1 misc
 TODO: 
 
     * Include raw to Pronto hex conversion routines from ExchangeIR.cpp by Graham Dixon from the source at http://www.hifi-remote.com/forums/dload.php?action=file&file_id=8460 - if anyone knows how to do this, please drop me a line (I can't get it to compile on Linux)
-    * Make it compile on Mac OS X
