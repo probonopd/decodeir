@@ -5957,9 +5957,9 @@ void DecodeIR_API DecodeIR
 }
 
 void raw_to_pronto(char* argv[]) {
-  char *st = argv[1];
+  char *st = strdup(argv[1]);
   char *ch = strtok(st, ",");
-  if (!ch) return;
+  if (strcmp(ch,argv[1])==0) return;
 
   char buf[8];
   int size = 5;
