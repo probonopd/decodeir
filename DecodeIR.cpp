@@ -5956,29 +5956,30 @@ void DecodeIR_API DecodeIR
 }
 }
 
-int raw_to_pronto(int* argc_ptr, char** argv_ptr[]) {
-  char *p1 = (*argv_ptr)[1];
-  if (!p1)
+int raw_to_pronto(int* argcp, char** argvp[]) {
+  if (*argcp<2)
     return 0;
+
+  char *p1 = (*argvp)[1];
+  if (strcmp(p1,"0000")==0)
+    return 0;
+
+  const int max_size = 2048;
+  static char* argv[max_size];
+  argv[0] = strdup((*argvp)[0]);
 
   char *st = strdup(p1);
   char *ch = strtok(st, ",");
-  if (strcmp(ch,p1)==0) {
-    free(st);
-    return 0;
-  }
-
-  const int max_size = 1024;
-  static char* argv[max_size];
-  argv[0] = strdup((*argv_ptr)[0]);
+  int comma_separated = strcmp(ch,p1)!=0;
 
   char buf[8];
   int size = 5;
-  for (;ch && size<max_size; size++) {
+
+  for (int i=1; ch && size<max_size && i<(*argcp)+1;) {
     int value = abs(atoi(ch));
     sprintf(buf,"%04X", value*38000/1000000);
-    argv[size] = strdup(buf);
-    ch = strtok(NULL, ",");
+    argv[size++] = strdup(buf);
+    ch = comma_separated ? strtok(NULL, ",") : (*argvp)[++i];
   }
 
   free(st);
@@ -5989,8 +5990,8 @@ int raw_to_pronto(int* argc_ptr, char** argv_ptr[]) {
   argv[3] = strdup(buf);
   argv[4] = strdup(argv[1]);
 
-  *argv_ptr = argv;
-  *argc_ptr = size;
+  *argvp = argv;
+  *argcp = size;
 
   return 1;
 }
