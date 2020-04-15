@@ -5970,6 +5970,7 @@ int raw_to_pronto(int* argc_ptr, char** argv_ptr[]) {
 
   const int max_size = 1024;
   static char* argv[max_size];
+  argv[0] = strdup((*argv_ptr)[0]);
 
   char buf[8];
   int size = 5;
@@ -5999,8 +6000,7 @@ int main(int argc, char* argv[])
   unsigned int i = 1; 
   int type; 
 
-  int is_raw = raw_to_pronto(&argc, &argv);
-
+  raw_to_pronto(&argc, &argv);
   sscanf(argv[i++], "%x", &type); 
   if (type != 0) 
 {
@@ -6050,9 +6050,5 @@ int main(int argc, char* argv[])
       << " error=" << error_message << "\n"; 
     }
   while (protocol[0] != '\0'); 
-
-  if (is_raw)
-    for (int i=1; i<argc; i++)
-      free(argv[i]);
 }
 
