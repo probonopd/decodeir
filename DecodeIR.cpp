@@ -5958,10 +5958,15 @@ void DecodeIR_API DecodeIR
 
 int raw_to_pronto(int* argc_ptr, char** argv_ptr[]) {
   char *p1 = (*argv_ptr)[1];
-  if (!p1) return 0;
+  if (!p1)
+    return 0;
+
   char *st = strdup(p1);
   char *ch = strtok(st, ",");
-  if (strcmp(ch,p1)==0) return 0;
+  if (strcmp(ch,p1)==0) {
+    free(st);
+    return 0;
+  }
 
   const int max_size = 1024;
   static char* argv[max_size];
