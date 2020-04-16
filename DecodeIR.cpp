@@ -5956,10 +5956,52 @@ void DecodeIR_API DecodeIR
 }
 }
 
+int raw_to_pronto(int* argcp, char** argvp[]) {
+  if (*argcp<2)
+    return 0;
+
+  char *p1 = (*argvp)[1];
+  if (strcmp(p1,"0000")==0)
+    return 0;
+
+  const int max_size = 2048;
+  static char* argv[max_size];
+  argv[0] = strdup((*argvp)[0]);
+
+  char *st = strdup(p1);
+  char *ch = strtok(st, ",");
+  int comma_separated = strcmp(ch,p1)!=0;
+
+  char buf[8];
+  int size = 5;
+
+  for (int i=1; ch && size<max_size && i<(*argcp)+1;) {
+    int value = abs(atoi(ch));
+    sprintf(buf,"%04X", value*38000/1000000);
+    argv[size++] = strdup(buf);
+    ch = comma_separated ? strtok(NULL, ",") : (*argvp)[++i];
+  }
+
+  free(st);
+
+  argv[1] = strdup("0000");
+  argv[2] = strdup("006D");
+  sprintf(buf,"%04X", (size-4)/2);
+  argv[3] = strdup(buf);
+  argv[4] = strdup(argv[1]);
+
+  *argvp = argv;
+  *argcp = size;
+
+  return 1;
+}
+
 int main(int argc, char* argv[]) 
 {
   unsigned int i = 1; 
   int type; 
+
+  raw_to_pronto(&argc, &argv);
   sscanf(argv[i++], "%x", &type); 
   if (type != 0) 
 {
