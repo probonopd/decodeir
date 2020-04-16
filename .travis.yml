@@ -1,0 +1,4 @@
+lang: c
+
+script:
+  - make
