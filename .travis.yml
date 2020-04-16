@@ -1,5 +1,5 @@
 lang: cpp
-dist: trusty
+dist: xenial
 
 script:
   - make
