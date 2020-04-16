@@ -6,4 +6,4 @@ clean:
 	rm decodeir
 
 decodeir:	$(NAME).cpp 
-	g++ -DMAIN -o $@ $(INCLUDES) $<
+	$(CXX) -DMAIN -o $@ $(INCLUDES) $<
