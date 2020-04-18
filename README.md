@@ -1,7 +1,7 @@
 decodeir [![Build Status](https://travis-ci.com/probonopd/decodeir.svg?branch=master)](https://travis-ci.com/probonopd/decodeir)
 ========
 
-decodeir is an executable that converts Pronto Hex infrared codes into protocol, device, subdevice, command = OBC information. 
+decodeir is an executable that converts raw or Pronto Hex infrared codes into protocol, device, subdevice, command = OBC information. 
 
 It is based on  DecodeIR v2.45 sources from http://www.hifi-remote.com/forums/viewtopic.php?t=14219 by John S. Fine, revision by Graham Dixon, with all Java and Windows code removed and converted from a library to a standalone executable by me.
 
